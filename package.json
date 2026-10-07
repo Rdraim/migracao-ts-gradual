@@ -1,0 +1,19 @@
+{
+  "name": "migracao-ts-gradual",
+  "version": "1.0.0",
+  "description": "Playbook e ferramentas puras para migrar JavaScript para TypeScript aos poucos (allowJs, checkJs, renomear por módulo, zero big-bang). Mede progresso e conta usos de any. Zero dependências.",
+  "type": "module",
+  "main": "src/progresso.js",
+  "exports": "./src/progresso.js",
+  "files": ["src", "README.md", "README.en-US.md", "README.es-AR.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["typescript", "javascript", "migracao", "allowjs", "checkjs", "tsconfig", "pt-br"],
+  "author": "Rodrigo Rodrigues",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Rdraim/migracao-ts-gradual.git" },
+  "bugs": { "url": "https://github.com/Rdraim/migracao-ts-gradual/issues" },
+  "homepage": "https://github.com/Rdraim/migracao-ts-gradual#readme",
+  "engines": { "node": ">=18" }
+}
