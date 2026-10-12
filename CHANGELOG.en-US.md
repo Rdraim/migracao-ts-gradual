@@ -1,0 +1,19 @@
+<p align="right">
+  <a href="CHANGELOG.md"><img src="assets/support/flag-pt-br.svg" width="36" height="24" alt="Português brasileiro" title="Português brasileiro"></a>
+  <a href="CHANGELOG.en-US.md"><img src="assets/support/flag-en-us.svg" width="36" height="24" alt="English (United States)" title="English (United States)"></a>
+  <a href="CHANGELOG.es-AR.md"><img src="assets/support/flag-es-ar.svg" width="36" height="24" alt="Español (Argentina)" title="Español (Argentina)"></a>
+</p>
+
+# Changelog
+
+## 1.2.0 — 2026-10-12
+
+Adds Git-index measurement, TypeScript contracts, synthetic-repository tests and complete documentation.
+
+[API and recipes](API.en-US.md) · [Compatibility](COMPATIBILITY.en-US.md) · [Contributing](CONTRIBUTING.en-US.md) · [Security](SECURITY.en-US.md) · [Changelog](CHANGELOG.en-US.md) · [Voluntary support](SUPPORT.en-US.md)
+
+## 1.1.0 — 2026-10-12
+
+Initial public release. Independent contract, synthetic examples and CI.
+
+[Back to project](README.en-US.md)
