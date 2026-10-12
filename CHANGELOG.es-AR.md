@@ -6,6 +6,10 @@
 
 # Historial
 
+## 1.2.1 — 2026-10-12
+
+Corrige la inclusión de ejemplos y archivos de verificación referenciados por los documentos; agrega chequeo de empaquetado al CI. Sin cambios de ejecución.
+
 ## 1.2.0 — 2026-10-12
 
 Agrega medición por el índice Git, contratos TypeScript, pruebas con repositorio sintético y documentación completa.

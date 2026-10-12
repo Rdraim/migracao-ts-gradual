@@ -19,4 +19,6 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm test
       - run: npm run example
+      - run: npm run example:integration
+      - run: npm run check:package
       - run: node tools/check-public-content.mjs --history

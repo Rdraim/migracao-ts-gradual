@@ -26,3 +26,11 @@ La página abierta no cambia al instante: recargar tras el commit automático.
 GitHub puede demorar la agenda o desactivarla por inactividad; revisar Actions.
 Errores transitorios de API frenan la actualización y conservan el último bloque
 válido. El token temporal publica solo README y SVG, nunca datos privados.
+
+## Verificación del paquete
+
+La distribución incluye ejemplos, pruebas, contratos de tipos, documentación y assets referenciados. El chequeo usa el manifiesto real de npm pack en modo seco; no publica, instala ni ejecuta hooks.
+
+```bash
+npm run check:package
+```

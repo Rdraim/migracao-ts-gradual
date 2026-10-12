@@ -79,7 +79,7 @@ Para repetir el chequeo, usá TypeScript instalado en tu entorno:
 tsc --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext test-types/consumer.mts
 ```
 
-## Nueva versión — 1.2.0
+## Nueva versión — 1.2.1
 
 Agrega medición por el índice Git, contratos TypeScript, pruebas con repositorio sintético y documentación completa.
 

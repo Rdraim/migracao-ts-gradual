@@ -27,3 +27,11 @@ aberta: recarregue após o commit automático. A agenda pode atrasar ou ser
 desativada pelo GitHub por inatividade; consulte Actions nesse caso. Falha
 transitória da API interrompe a atualização, preservando o último bloco válido.
 O token temporário só publica README e SVGs, nunca dados privados.
+
+## Verificação do pacote
+
+A distribuição inclui exemplos, testes, contratos de tipos, documentação e assets referenciados. A checagem usa o manifesto real de npm pack em modo seco e não publica, instala ou executa hooks.
+
+```bash
+npm run check:package
+```

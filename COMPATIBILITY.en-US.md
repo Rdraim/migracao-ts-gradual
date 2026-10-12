@@ -26,3 +26,11 @@ An open page does not change instantly: reload after the automatic commit.
 GitHub may delay schedules or disable them after inactivity; check Actions.
 Transient API errors stop the update and preserve the last valid block.
 The temporary token publishes only README blocks and SVGs, never private data.
+
+## Package verification
+
+The distribution includes examples, tests, type contracts, documentation and referenced assets. The check uses the actual npm pack manifest in dry-run mode; it does not publish, install or execute hooks.
+
+```bash
+npm run check:package
+```
