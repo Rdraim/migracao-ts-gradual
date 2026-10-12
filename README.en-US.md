@@ -1,80 +1,59 @@
-# migracao-ts-gradual
+<p align="right">
+  <a href="README.md"><img src="assets/support/flag-pt-br.svg" width="36" height="24" alt="Português brasileiro" title="Português brasileiro"></a>
+  <a href="README.en-US.md"><img src="assets/support/flag-en-us.svg" width="36" height="24" alt="English (United States)" title="English (United States)"></a>
+  <a href="README.es-AR.md"><img src="assets/support/flag-es-ar.svg" width="36" height="24" alt="Español (Argentina)" title="Español (Argentina)"></a>
+</p>
 
-**Language:** [PT-BR](README.md) · **EN-US** · [es-AR](README.es-AR.md)
+# Gradual migration from JavaScript to TypeScript
 
-A playbook (and pure tools) to move a project from **JavaScript to TypeScript gradually** — without rewriting everything at once. JS and TS coexist, legacy becomes TS at your pace, and every new module is born typed.
+JS and TS coexist: enable allowJs and check with checkJs or JSDoc. Migrate by module, preserve tests and validate consumers. Renaming files does not guarantee type safety.
 
-## The strategy
+A bundler can transpile without type checking. Pin TypeScript in your project devDependencies and run tsc --noEmit in CI. This repository core does not install a compiler or modify source files.
 
-A big-bang rewrite is costly and risky. Gradual migration is a *strangler*: TS grows inside a project that keeps working.
+Node 22.18 or later enables type stripping by default; 22.6–22.17 requires --experimental-strip-types. Stripping does not type-check, read tsconfig or support TSX, and requires erasable syntax. Build to JavaScript when these limits do not fit. Keep bundler configuration separate from Node execution configuration.
 
-1. **`tsconfig.json` with `allowJs: true`** — `.js` and `.ts` live in the same project.
-2. **`checkJs: true` (or `// @ts-check` atop a `.js`)** — TS **analyzes old JS without rewriting it**. Highest return, lowest risk: it catches real bugs from inferred types and JSDoc, changing nothing about how the code runs.
-3. **Rename a little at a time** — `.js`/`.jsx` → `.ts`/`.tsx`, **one file at a time**, starting with **utilities and independent modules** and with **new features**.
-4. **Avoid `any`** — migrating fast tempts you to type everything as `any`, which defeats the safety. Define real interfaces and types gradually; use `unknown` + narrowing when unsure.
-5. **Every new module in `.ts`/`.tsx`** — from now on, no more `.js`/`.jsx`. The TS percentage only climbs.
+[Node.js](https://nodejs.org/api/typescript.html) · [allowJs](https://www.typescriptlang.org/tsconfig/allowJs.html) · [checkJs](https://www.typescriptlang.org/tsconfig/checkJs.html)
 
-## Does the stack work in TS?
+## Usage
 
-Generally **yes** — but what decides the effort is **how your runtime executes `.ts`**:
-
-- **Front-end with a bundler (Vite/esbuild, webpack, Next):** transpiles `.ts`/`.tsx` natively, no extra step. `allowJs` lets `.jsx` and `.tsx` coexist. Add `typescript` as a *devDependency* only if you want real type-checking (bundlers transpile but **do not** type-check).
-- **Node back-end:** the decision lives here. Node **≥ 23.6 strips types natively** (and 22.6–23.5 with `--experimental-strip-types`), but stripping only accepts "erasable" TS (no `enum`, no `namespace`, no parameter properties; use `erasableSyntaxOnly`). On **Node < 22.6** you need a build step (`tsc` → `.js`) or a loader. Back-end options:
-
-  | option | cost | note |
-  |---|---|---|
-  | Bump Node to ≥ 23.6 and run `.ts` directly | runtime upgrade | zero new dependency; "erasable" TS |
-  | `tsc` in the build (compiles to `dist`) | adds a build + `typescript` devDep | keeps current Node |
-  | Loader (`tsx`/`ts-node`) | runtime dependency | fastest to adopt |
-
-- **Libraries:** almost everything ships types. Some are **TS-first** (e.g., Zod infers the type from the schema); popular ORMs/frameworks bring their own types or `@types/*`.
-
-**Rule of thumb:** start with `// @ts-check` (zero runtime change), migrate the front-end via the bundler, and only then settle `.ts` execution on the back-end per the table.
-
-## Starter tsconfig
-
-See [`examples/tsconfig.base.json`](examples/tsconfig.base.json): `allowJs` + `checkJs` + `strict` + `noEmit` (type-check only; transpiling stays with the bundler/Node). Keep `strict` on for new code; relax per file for legacy until truly typed.
-
-## CI that stops regressions
-
-Type-check without emitting:
+Node.js 22 or later. Dependency-free ESM core, usable in modern browsers. Not published on npm: clone the repository or use a pinned Git revision. Preserve the license when copying the module.
 
 ```bash
-npx tsc --noEmit
+git clone https://github.com/Rdraim/migracao-ts-gradual.git
+cd migracao-ts-gradual
+npm test
+npm run example
 ```
-
-Put it in CI next to the tests. A `.ts` that breaks the contract then fails the pull request even if the bundler transpiles it happily.
-
-## Included tool
 
 ```js
-import { progresso, contarAny, classificar } from 'migracao-ts-gradual';
-
-progresso(['a.ts', 'b.js', 'c.js']);   // { total: 3, ts: 1, js: 2, pct_ts: 33.3 }
-contarAny('function f(x: any) {}');    // 1  — target: zero before calling it migrated
-classificar('tela.tsx');               // 'ts'
+import { progresso, contarAny, classificar } from './src/progresso.js';
+progresso(['a.ts', 'b.js', 'types.d.ts']); // { total: 2, ts: 1, js: 1, pct_ts: 50 }
+contarAny('x: any[]; y as any'); // 2
+classificar('Component.tsx'); // 'ts'
 ```
 
-| function | description |
-|---|---|
-| `progresso(files)` | `{ total, ts, js, pct_ts }` from a list of paths |
-| `contarAny(text)` | counts `: any`, `as any`, `<any>`, `any[]` |
-| `classificar(path)` | `'ts'` · `'js'` · `'outro'` (other) |
+[tsconfig](examples/tsconfig.base.json)
 
-Feed `progresso` with `git ls-files` output and you have a migration thermometer for CI.
+## Limits
 
-## Limitations
+progresso measures files, not lines or type quality. Declaration files .d.ts/.d.mts/.d.cts are excluded from implementation counts. contarAny is a text heuristic: it counts common tokens, including comments/strings, and misses some explicit and implicit types. Use the compiler/linter for actual assessment.
 
-- `contarAny` is a **text scan** (regex), not a type parser: it catches common cases, not implicit `any`. For rigor, use `noImplicitAny` in `tsconfig`.
-- The tool measures **files**, not lines or type quality.
-- The playbook is platform-agnostic; the back-end table depends on your Node version.
+## Verification
 
-## Tests
+CI on Node 22 and 24, runnable examples, edge case tests and heuristic content/history checks. Automated checks do not replace human review.
 
-```bash
-node --test
-```
+## Contributing
+
+Open an Issue with expected behavior and a synthetic example. Contributions need a PR with a regression test and synchronized documentation in all three languages. Do not submit real data, logs, configuration or credentials.
+
+## Security
+
+Use GitHub private vulnerability reporting when available. Do not post secrets or personal data in Issues. The core does not access networks, databases or files; validate contracts and limits in the consuming application.
+
+## Changelog
+
+1.1.0 — 2026-10-12: Node 22/24 CI, history checks, declarations excluded from progress, no double count of any[] and updated documentation.
 
 ## License
 
-MIT © Rodrigo Rodrigues
+[MIT](LICENSE) © Rodrigo Rodrigues

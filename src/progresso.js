@@ -15,6 +15,7 @@ const EXT_JS = ['.js', '.jsx', '.mjs', '.cjs'];
 /** Classifica um caminho por extensão: 'ts', 'js' ou 'outro'. */
 export function classificar(caminho) {
   const p = String(caminho || '').toLowerCase();
+  if (/\.d\.(?:ts|mts|cts)$/.test(p)) return 'outro';
   if (EXT_TS.some((e) => p.endsWith(e))) return 'ts';
   if (EXT_JS.some((e) => p.endsWith(e))) return 'js';
   return 'outro';
@@ -36,7 +37,7 @@ export function progresso(arquivos = []) {
 /** Conta usos de `any` explícito (`: any`, `as any`, `<any>`, `any[]`). Durante
    a migração, resistir ao `any` é o que preserva o ganho de segurança do TS. */
 export function contarAny(texto) {
-  const re = /(:\s*any\b)|(\bas\s+any\b)|(<any>)|(\bany\s*\[\s*\])/g;
+  const re = /:\s*any\b(?:\s*\[\s*\])?|\bas\s+any\b(?:\s*\[\s*\])?|<any>|\bany\s*\[\s*\]/g;
   return (String(texto || '').match(re) || []).length;
 }
 

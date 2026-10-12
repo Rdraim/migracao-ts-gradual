@@ -23,3 +23,12 @@ test('conta any explícito (: any, as any, <any>)', () => {
   assert.equal(contarAny('a: any; b as any; <any>c'), 3);
   assert.equal(contarAny('const x = 1; let y: string'), 0);
 });
+
+test('declarações não inflam progresso de implementação', () => {
+  assert.deepEqual(progresso(['types.d.ts', 'types.d.mts', 'types.d.cts', 'a.ts', 'b.js']), { total: 2, ts: 1, js: 1, pct_ts: 50 });
+});
+
+test('cada anotação any[] é contada uma vez', () => {
+  assert.equal(contarAny('a: any[]; b as any[]; c: any; d as any; <any>e'), 5);
+  assert.equal(contarAny('many[]; anything;'), 0);
+});

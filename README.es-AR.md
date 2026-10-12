@@ -1,80 +1,59 @@
-# migracao-ts-gradual
+<p align="right">
+  <a href="README.md"><img src="assets/support/flag-pt-br.svg" width="36" height="24" alt="Português brasileiro" title="Português brasileiro"></a>
+  <a href="README.en-US.md"><img src="assets/support/flag-en-us.svg" width="36" height="24" alt="English (United States)" title="English (United States)"></a>
+  <a href="README.es-AR.md"><img src="assets/support/flag-es-ar.svg" width="36" height="24" alt="Español (Argentina)" title="Español (Argentina)"></a>
+</p>
 
-**Idioma:** [PT-BR](README.md) · [EN-US](README.en-US.md) · **es-AR**
+# Migración gradual de JavaScript a TypeScript
 
-Un playbook (y herramientas puras) para pasar un proyecto de **JavaScript a TypeScript de a poco** — sin reescribir todo de una vez. JS y TS conviven, lo legado se vuelve TS a tu ritmo y todo módulo nuevo nace tipado.
+JS y TS conviven: habilitá allowJs y chequeá con checkJs o JSDoc. Migrá por módulo, conservá pruebas y validá consumidores. Renombrar archivos no garantiza seguridad de tipos.
 
-## La estrategia
+Un bundler puede transpilar sin chequear tipos. Fijá TypeScript en las devDependencies de tu proyecto y ejecutá tsc --noEmit en CI. El núcleo de este repositorio no instala compiladores ni modifica fuentes.
 
-Reescribir todo (big-bang) es caro y riesgoso. La migración gradual es un *strangler*: el TS crece dentro de un proyecto que sigue funcionando.
+Node 22.18 o superior habilita la eliminación de tipos por defecto; 22.6–22.17 requiere --experimental-strip-types. No chequea tipos, no lee tsconfig, no soporta TSX y exige sintaxis borrable. Compilá a JavaScript cuando estos límites no sirvan. Separá la configuración del bundler de la ejecución Node.
 
-1. **`tsconfig.json` con `allowJs: true`** — `.js` y `.ts` conviven en el mismo proyecto.
-2. **`checkJs: true` (o `// @ts-check` arriba del `.js`)** — TS **analiza el JS viejo sin reescribirlo**. El paso de mayor retorno y menor riesgo: encuentra bugs reales con tipos inferidos y JSDoc, sin cambiar cómo corre el código.
-3. **Renombrá de a poco** — `.js`/`.jsx` → `.ts`/`.tsx`, **un archivo por vez**, empezando por **utilitarios y módulos independientes** y por **features nuevas**.
-4. **Evitá `any`** — migrar rápido tienta a tipar todo como `any`, lo que anula la seguridad. Definí interfaces y tipos reales de a poco; usá `unknown` + narrowing cuando no sepas.
-5. **Todo módulo nuevo en `.ts`/`.tsx`** — de ahora en más, no más `.js`/`.jsx`. El porcentaje en TS solo sube.
+[Node.js](https://nodejs.org/api/typescript.html) · [allowJs](https://www.typescriptlang.org/tsconfig/allowJs.html) · [checkJs](https://www.typescriptlang.org/tsconfig/checkJs.html)
 
-## ¿El stack funciona en TS?
+## Uso
 
-En general **sí** — pero lo que decide el esfuerzo es **cómo tu runtime ejecuta `.ts`**:
-
-- **Front-end con bundler (Vite/esbuild, webpack, Next):** transpila `.ts`/`.tsx` de forma nativa, sin paso extra. `allowJs` deja convivir `.jsx` y `.tsx`. Agregá `typescript` como *devDependency* solo si querés chequeo de tipos real (el bundler transpila pero **no** chequea tipos).
-- **Back-end Node:** acá está la decisión. Node **≥ 23.6 elimina tipos de forma nativa** (y 22.6–23.5 con `--experimental-strip-types`), pero el *stripping* solo acepta TS "borrable" (sin `enum`, sin `namespace`, sin parameter properties; usá `erasableSyntaxOnly`). En **Node < 22.6** necesitás un build (`tsc` → `.js`) o un loader. Opciones en el back-end:
-
-  | opción | costo | nota |
-  |---|---|---|
-  | Subir Node a ≥ 23.6 y correr `.ts` directo | upgrade de runtime | sin dependencia nueva; TS "borrable" |
-  | `tsc` en el build (compila a `dist`) | agrega build + devDep `typescript` | mantiene el Node actual |
-  | Loader (`tsx`/`ts-node`) | dependencia en runtime | más rápido de adoptar |
-
-- **Librerías:** casi todo trae tipos. Algunas son **TS-first** (ej.: Zod infiere el tipo del schema); ORMs/frameworks populares traen sus propios tipos o `@types/*`.
-
-**Regla práctica:** empezá con `// @ts-check` (cero cambio de runtime), migrá el front con el bundler y recién después resolvé la ejecución de `.ts` en el back-end según la tabla.
-
-## tsconfig inicial
-
-Mirá [`examples/tsconfig.base.json`](examples/tsconfig.base.json): `allowJs` + `checkJs` + `strict` + `noEmit` (solo chequeo; la transpilación queda en el bundler/Node). Dejá `strict` activo en código nuevo; para lo legado, relajá por archivo hasta tipar de verdad.
-
-## CI que frena la regresión
-
-Chequeá tipos sin emitir:
+Node.js 22 o superior. Núcleo ESM sin dependencias, utilizable en navegadores modernos. No está publicado en npm: cloná el repositorio o usá una revisión Git fija. Conservá la licencia al copiar el módulo.
 
 ```bash
-npx tsc --noEmit
+git clone https://github.com/Rdraim/migracao-ts-gradual.git
+cd migracao-ts-gradual
+npm test
+npm run example
 ```
-
-Ponelo en el CI junto a los tests. Así un `.ts` que rompe el contrato falla el pull request aunque el bundler lo transpile sin quejarse.
-
-## Herramienta incluida
 
 ```js
-import { progresso, contarAny, classificar } from 'migracao-ts-gradual';
-
-progresso(['a.ts', 'b.js', 'c.js']);   // { total: 3, ts: 1, js: 2, pct_ts: 33.3 }
-contarAny('function f(x: any) {}');    // 1  — meta: cero antes de darlo por migrado
-classificar('tela.tsx');               // 'ts'
+import { progresso, contarAny, classificar } from './src/progresso.js';
+progresso(['a.ts', 'b.js', 'types.d.ts']); // { total: 2, ts: 1, js: 1, pct_ts: 50 }
+contarAny('x: any[]; y as any'); // 2
+classificar('Component.tsx'); // 'ts'
 ```
 
-| función | descripción |
-|---|---|
-| `progresso(archivos)` | `{ total, ts, js, pct_ts }` desde una lista de rutas |
-| `contarAny(texto)` | cuenta `: any`, `as any`, `<any>`, `any[]` |
-| `classificar(ruta)` | `'ts'` · `'js'` · `'outro'` (otro) |
+[tsconfig](examples/tsconfig.base.json)
 
-Alimentá `progresso` con la salida de `git ls-files` y tenés un termómetro de la migración para el CI.
+## Límites
 
-## Limitaciones
+progresso mide archivos, no líneas ni calidad de tipos. Las declaraciones .d.ts/.d.mts/.d.cts no cuentan como implementación. contarAny es una heurística textual: cuenta tokens comunes, también en comentarios/cadenas, y omite algunos tipos explícitos e implícitos. Usá el compilador/linter para una evaluación real.
 
-- `contarAny` es un **barrido textual** (regex), no un parser de tipos: toma los casos comunes, no el `any` implícito. Para rigor, usá `noImplicitAny` en `tsconfig`.
-- La herramienta mide **archivos**, no líneas ni la calidad de los tipos.
-- El playbook es agnóstico de plataforma; la tabla del back-end depende de tu versión de Node.
+## Verificación
 
-## Tests
+CI en Node 22 y 24, ejemplos ejecutables, pruebas de bordes y revisión heurística de contenido/historial. La revisión automática no reemplaza la inspección humana.
 
-```bash
-node --test
-```
+## Contribuciones
+
+Abrí una Issue con el comportamiento esperado y un ejemplo sintético. Enviá un PR con prueba de regresión y documentación sincronizada en los tres idiomas. No envíes datos reales, registros, configuración ni credenciales.
+
+## Seguridad
+
+Usá el reporte privado de vulnerabilidades de GitHub cuando esté disponible. No publiques secretos ni datos personales en Issues. El núcleo no accede a redes, bases ni archivos; validá contratos y límites en la aplicación consumidora.
+
+## Historial
+
+1.1.0 — 2026-10-12: CI Node 22/24, revisión del historial, declaraciones excluidas del progreso, sin doble conteo de any[] y documentación actualizada.
 
 ## Licencia
 
-MIT © Rodrigo Rodrigues
+[MIT](LICENSE) © Rodrigo Rodrigues
