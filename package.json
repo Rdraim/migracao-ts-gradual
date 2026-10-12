@@ -1,6 +1,6 @@
 {
   "name": "migracao-ts-gradual",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Playbook e ferramentas puras para migrar JavaScript para TypeScript aos poucos (allowJs, checkJs, renomear por módulo, zero big-bang). Mede progresso e conta usos de any. Zero dependências.",
   "type": "module",
   "main": "src/progresso.js",
@@ -19,8 +19,10 @@
     "*.md",
     "LICENSE",
     "assets/support",
-    "tools/progresso-git.mjs",
-    "tools/progresso-git.d.ts"
+    "examples",
+    "test",
+    "test-types",
+    "tools"
   ],
   "scripts": {
     "test": "node --test",
@@ -28,7 +30,8 @@
     "check:public": "node tools/check-public-content.mjs --history",
     "progress": "node tools/progresso-git.mjs",
     "check": "node --check src/progresso.js",
-    "example:integration": "node examples/integracao.mjs"
+    "example:integration": "node examples/integracao.mjs",
+    "check:package": "node tools/check-package.mjs"
   },
   "keywords": [
     "typescript",

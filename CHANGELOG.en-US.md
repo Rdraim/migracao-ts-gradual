@@ -6,6 +6,10 @@
 
 # Changelog
 
+## 1.2.1 — 2026-10-12
+
+Fixes inclusion of examples and verification files referenced by documentation; adds package checks to CI. No runtime change.
+
 ## 1.2.0 — 2026-10-12
 
 Adds Git-index measurement, TypeScript contracts, synthetic-repository tests and complete documentation.
